@@ -1,12 +1,13 @@
 import { Plugin, elizaLogger } from "@elizaos/core";
 import { RegisterProvider } from './providers/RegisterProvider';
 import { RegisterProjectAction } from './actions/register';
+import { CheckProjectStageAction } from "./actions/checkStage";
 
 console.log("\n┌════════════════════════════════════════┐");
 console.log("│          Double PLUGIN                 │");
 console.log("├────────────────────────────────────────┤");
 console.log("│  Initializing Double Plugin...         │");
-console.log("│  Version: 0.0.2                       │");
+console.log("│  Version: 0.0.3                      │");
 console.log("└════════════════════════════════════════┘");
 
 elizaLogger.info('[🔄 DOUBLE] Plugin - Initializing');
@@ -19,6 +20,7 @@ export const doublePlugin: Plugin = {
     description: "Agent double with basic actions and evaluators",
     actions: [
         new RegisterProjectAction(registerProvider),
+        new CheckProjectStageAction(),
     ],
     evaluators: [],
     providers: [],
