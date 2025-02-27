@@ -6,6 +6,7 @@ export const examples: ActionExample[][] = [
             user: '{{user1}}',
             content: {
                 text: 'Register my new project ElizaOS, a decentralized AI assistant platform. Repository: https://github.com/elizaos/eliza Stage: MVP Category: AI Description: ElizaOS is a decentralized platform that enables AI assistants to interact with users across multiple channels while maintaining privacy and security.',
+                action: 'REGISTER_PROJECT'
             },
         },
         {
@@ -30,6 +31,7 @@ export const examples: ActionExample[][] = [
             user: '{{user1}}',
             content: {
                 text: 'I want to register my project called CryptoTrader. It\'s a prototype stage cryptocurrency trading bot. You can find it at https://github.com/cryptotrader/bot. Category is DeFi.',
+                action: 'REGISTER_PROJECT'
             },
         },
         {

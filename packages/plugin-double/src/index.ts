@@ -7,7 +7,7 @@ console.log("\n┌════════════════════�
 console.log("│          Double PLUGIN                 │");
 console.log("├────────────────────────────────────────┤");
 console.log("│  Initializing Double Plugin...         │");
-console.log("│  Version: 0.0.3                      │");
+console.log("│  Version: 0.0.4                      │");
 console.log("└════════════════════════════════════════┘");
 
 elizaLogger.info('[🔄 DOUBLE] Plugin - Initializing');
