@@ -1,0 +1,1 @@
+{"walletId":"ce97eb11-b258-4511-8bad-f1662eecba85","seed":"4c948a2cf6d0f42fb6cff0d85e7ac3acf22199c279c6203c7bb4f19c6571bbdf","networkId":"polygon-mainnet","defaultAddressId":"0xC0f28a5AB4fFfc4727F11552B8276D8Bb2C5b3a7"}
