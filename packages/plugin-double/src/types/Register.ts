@@ -68,7 +68,7 @@ export interface ProjectData {
 }
 
 export interface RegisterProvider {
-    registerProject(project: ProjectData): Promise<boolean>;
+    registerProject(project: ProjectData, castText: string): Promise<boolean>;
 }
 
 export type ProjectStage = 'IDEATION' | 'PROTOTYPE' | 'MVP' | 'GROWTH' | 'FUNDED';

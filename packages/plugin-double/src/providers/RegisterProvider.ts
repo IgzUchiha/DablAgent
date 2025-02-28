@@ -23,7 +23,7 @@ export class RegisterProvider {
         elizaLogger.info('[✅ DOUBLE] RegisterProvider - Initialized with API URL:', this.apiUrl);
     }
 
-    async registerProject(project: ProjectData): Promise<boolean> {
+    async registerProject(project: ProjectData, castText: string): Promise<boolean> {
         try {
             elizaLogger.info('[🔄 DOUBLE] RegisterProvider - Registering project:', project);
 
@@ -32,7 +32,7 @@ export class RegisterProvider {
                 ...project,
                 adminId: project.adminId || DEFAULT_ADMIN_ID
             }
-
+            elizaLogger.info('[🔄 DOUBLE] RegisterProvider - Project modified:', projectModified);
             const response = await axios.post<ProjectResponse>(
                 `${this.apiUrl}/projects`,
                 projectModified,
@@ -41,6 +41,7 @@ export class RegisterProvider {
                     timeout: API_DEFAULTS.TIMEOUT
                 }
             );
+
 
             elizaLogger.info('[✅ DOUBLE] RegisterProvider - Project registered successfully:', response.data);
             return true;

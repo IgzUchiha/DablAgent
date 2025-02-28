@@ -10,6 +10,7 @@ import { RegisterProvider, Message, ProjectData } from '../../types/Register';
 import { extractProjectData } from '../../utils/extractors';
 import examples from './examples';
 import { PROJECT_STAGES } from '../../constants';
+import { generateFarcasterCast } from '../../utils/generators';
 
 export class RegisterProjectAction implements Action {
     private provider: RegisterProvider;
@@ -106,19 +107,21 @@ export class RegisterProjectAction implements Action {
             elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Processing registration request');
             const projectData = message.content.project ||
                 await extractProjectData(message.content.text || '', runtime);
+                elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Extracted project data:', {
+                    name: projectData.name,
+                    stage: projectData.stage
+                });
+            const castText = await generateFarcasterCast(projectData, runtime);
 
-            elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Extracted project data:', {
-                name: projectData.name,
-                stage: projectData.stage
-            });
+            elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Generated cast text:', castText);
 
-            const success = await this.provider.registerProject(projectData);
+            const success = await this.provider.registerProject(projectData, castText);
 
             if (success) {
                 elizaLogger.info('[✅ DOUBLE] RegisterProjectAction - Project registration successful:', projectData.name);
                 if (callback) {
                     callback({
-                        text: `Successfully registered project: ${projectData.name}`,
+                        text: `Cast created successfully for project: ${projectData.name} cast for farcast: ${castText}`,
                         content: {
                             project: projectData,
                         },
