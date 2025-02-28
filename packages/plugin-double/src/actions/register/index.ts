@@ -9,6 +9,7 @@ import {
 import { RegisterProvider, Message, ProjectData } from '../../types/Register';
 import { extractProjectData } from '../../utils/extractors';
 import examples from './examples';
+import { PROJECT_STAGES } from '../../constants';
 
 export class RegisterProjectAction implements Action {
     private provider: RegisterProvider;
@@ -101,8 +102,8 @@ export class RegisterProjectAction implements Action {
         callback?: HandlerCallback
     ): Promise<boolean> {
         try {
-            elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Processing registration request');
 
+            elizaLogger.info('[🔄 DOUBLE] RegisterProjectAction - Processing registration request');
             const projectData = message.content.project ||
                 await extractProjectData(message.content.text || '', runtime);
 

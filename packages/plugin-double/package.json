@@ -20,7 +20,9 @@
     ],
     "dependencies": {
         "@elizaos/core": "workspace:*",
-        "tsup": "8.3.5"
+        "tsup": "8.3.5",
+        "axios": "^1.6.7",
+        "zod": "^3.22.4"
     },
     "scripts": {
         "build": "tsup --format esm --dts",

@@ -95,3 +95,30 @@ export const projectSchema = z.object({
     stage: z.enum(['IDEATION', 'PROTOTYPE', 'MVP', 'GROWTH', 'FUNDED'] as const),
     category: z.string().min(1, "Category is required")
 });
+
+export async function extractGithubUrl(text: string, runtime: IAgentRuntime): Promise<string> {
+    elizaLogger.info('[🔄 DOUBLE] Extractors - Extracting GitHub URL');
+
+    // Try to find GitHub URL directly
+    const urlMatch = text.match(/https?:\/\/github\.com\/[\w-]+\/[\w.-]+/i);
+    if (urlMatch) {
+        elizaLogger.info('[✅ DOUBLE] Extractors - Found GitHub URL:', urlMatch[0]);
+        return urlMatch[0];
+    }
+
+    // If no direct URL found, use LLM to extract it
+    const prompt = runtime.renderTemplate('extractgithub', {
+        recentMessages: text
+    });
+
+    const response = await runtime.llm.complete(prompt);
+    const url = response.trim();
+
+    if (!url.includes('github.com')) {
+        elizaLogger.error('[❌ DOUBLE] Extractors - No valid GitHub URL found');
+        throw new Error('No valid GitHub URL found in text');
+    }
+
+    elizaLogger.info('[✅ DOUBLE] Extractors - Extracted GitHub URL:', url);
+    return url;
+}

@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "Proyectos API",
+    "description": "Colección para la API de proyectos con Prisma y Next.js",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Obtener Proyectos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects?take=10&skip=0&orderBy=createdAt&direction=desc",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects"
+          ],
+          "query": [
+            {
+              "key": "take",
+              "value": "10",
+              "description": "Número de proyectos a devolver"
+            },
+            {
+              "key": "skip",
+              "value": "0",
+              "description": "Número de proyectos a omitir (para paginación)"
+            },
+            {
+              "key": "cursor",
+              "value": "",
+              "description": "ID del último proyecto de la página anterior",
+              "disabled": true
+            },
+            {
+              "key": "orderBy",
+              "value": "createdAt",
+              "description": "Campo por el que ordenar"
+            },
+            {
+              "key": "direction",
+              "value": "desc",
+              "description": "Dirección de ordenamiento (asc o desc)"
+            }
+          ]
+        },
+        "description": "Obtiene una lista paginada de proyectos."
+      },
+      "response": []
+    },
+    {
+      "name": "Buscar Proyectos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects?query=ejemplo",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "ejemplo",
+              "description": "Término de búsqueda"
+            }
+          ]
+        },
+        "description": "Busca proyectos que coincidan con el término de búsqueda."
+      },
+      "response": []
+    },
+    {
+      "name": "Crear Proyecto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Nuevo Proyecto\",\n  \"description\": \"Descripción del nuevo proyecto\",\n  \"adminId\": \"user-id-here\",\n  \"communityId\": \"community-id-here\",\n  \"tokenId\": \"token-id-here\",\n  \"status\": \"ACTIVE\",\n  \"metadata\": {\n    \"websiteUrl\": \"https://ejemplo.com\",\n    \"socialLinks\": {\n      \"twitter\": \"https://twitter.com/ejemplo\",\n      \"discord\": \"https://discord.gg/ejemplo\"\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/projects",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects"
+          ]
+        },
+        "description": "Crea un nuevo proyecto."
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
