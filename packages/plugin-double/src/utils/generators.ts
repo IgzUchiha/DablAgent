@@ -18,6 +18,7 @@ Requirements:
 - Maximum 240 characters
 - Format: Problem → Solution → How it works
 - Must be engaging and clear
+-
 - Include relevant technical details if applicable
 - End with the project link: ${project.repositoryUrl}
 

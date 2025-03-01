@@ -23,7 +23,7 @@ export class RegisterProvider {
         elizaLogger.info('[✅ DOUBLE] RegisterProvider - Initialized with API URL:', this.apiUrl);
     }
 
-    async registerProject(project: ProjectData, castText: string): Promise<boolean> {
+    async registerProject(project: ProjectData): Promise<boolean> {
         try {
             elizaLogger.info('[🔄 DOUBLE] RegisterProvider - Registering project:', project);
 
@@ -32,7 +32,7 @@ export class RegisterProvider {
                 ...project,
                 adminId: project.adminId || DEFAULT_ADMIN_ID
             }
-            elizaLogger.info('[🔄 DOUBLE] RegisterProvider - Project modified:', projectModified);
+
             const response = await axios.post<ProjectResponse>(
                 `${this.apiUrl}/projects`,
                 projectModified,
@@ -42,8 +42,58 @@ export class RegisterProvider {
                 }
             );
 
-
             elizaLogger.info('[✅ DOUBLE] RegisterProvider - Project registered successfully:', response.data);
+
+            // Generate and post Farcaster cast
+            try {
+                // Verify environment variables
+                if (!process.env.FARCASTER_NEYNAR_API_KEY) {
+                    throw new Error("Missing FARCASTER_NEYNAR_API_KEY");
+                }
+
+                if (!process.env.FARCASTER_NEYNAR_SIGNER_UUID) {
+                    throw new Error("Missing FARCASTER_NEYNAR_SIGNER_UUID");
+                }
+
+                // Generate cast text
+                const castText = `🚀 New Project Alert: ${project.name}\n\n${project.description}\n\n${project.repositoryUrl || ''}`;
+
+                // Post to Farcaster
+                const url = "https://api.neynar.com/v2/farcaster/cast";
+                const options = {
+                    method: "POST",
+                    headers: {
+                        "accept": "application/json",
+                        "content-type": "application/json",
+                        "x-api-key": process.env.FARCASTER_NEYNAR_API_KEY
+                    },
+                    body: JSON.stringify({
+                        text: castText,
+                        signer_uuid: process.env.FARCASTER_NEYNAR_SIGNER_UUID
+                    })
+                };
+
+                const farcasterResponse = await fetch(url, options);
+
+                if (!farcasterResponse.ok) {
+                    const errorText = await farcasterResponse.text();
+                    throw new Error(`Farcaster API error: ${farcasterResponse.status} - ${errorText}`);
+                }
+
+                const responseData = await farcasterResponse.json();
+                elizaLogger.info('[✅ DOUBLE] RegisterProvider - Cast posted successfully:', responseData);
+
+            } catch (castError) {
+                elizaLogger.error('[❌ DOUBLE] RegisterProvider - Farcaster cast error:', {
+                    error: castError,
+                    message: castError.message,
+                    stack: castError.stack,
+                    hasApiKey: !!process.env.FARCASTER_NEYNAR_API_KEY,
+                    hasSignerUuid: !!process.env.FARCASTER_NEYNAR_SIGNER_UUID
+                });
+                // Don't fail the whole registration if casting fails
+            }
+
             return true;
 
         } catch (error) {
