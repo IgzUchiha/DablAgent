@@ -12,7 +12,7 @@ console.log("\n┌════════════════════�
 console.log("│          Double PLUGIN                 │");
 console.log("├────────────────────────────────────────┤");
 console.log("│  Initializing Double Plugin...         │");
-console.log("│  Version: 0.0.18                       │");
+console.log("│  Version: 0.0.2                       │");
 console.log("└════════════════════════════════════════┘");
 
 elizaLogger.info('[🔄 DOUBLE] Plugin - Initializing');
@@ -31,11 +31,11 @@ export const doublePlugin: Plugin = {
     name: "double",
     description: "Agent double with basic actions and evaluators",
     actions: [
+        new RegisterOrderAction(uberEatsProvider),
         new RegisterProjectAction(registerProvider),
         new CheckProjectStageAction(),
         new CheckProjectCategoryAction(),
-        new CheckGithubAction(githubProvider),
-        new RegisterOrderAction(uberEatsProvider),
+        new CheckGithubAction(githubProvider)
     ],
     evaluators: [],
     providers: [],

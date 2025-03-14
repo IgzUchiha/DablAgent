@@ -23,6 +23,7 @@ import { MemoryManager } from "./memory.ts";
 import { formatActors, formatMessages, getActorDetails } from "./messages.ts";
 import { parseJsonArrayFromText } from "./parsing.ts";
 import { formatPosts } from "./posts.ts";
+import { examples } from './examples';
 import { getProviders } from "./providers.ts";
 import { RAGKnowledgeManager } from "./ragknowledge.ts";
 import settings from "./settings.ts";

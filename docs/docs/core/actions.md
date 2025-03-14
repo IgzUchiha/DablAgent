@@ -195,15 +195,15 @@ const continueAction: Action = {
 Stops responding to irrelevant or completed conversations:
 
 ```typescript
-const ignoreAction: Action = {
-    name: "IGNORE",
-    similes: ["STOP_TALKING", "STOP_CHATTING"],
-    description:
-        "Used when ignoring the user is appropriate (conversation ended, user is aggressive, etc.)",
-    handler: async (runtime, message) => {
-        return true;
-    },
-};
+// const ignoreAction: Action = {
+//     name: "IGNORE",
+//     similes: ["STOP_TALKING", "STOP_CHATTING"],
+//     description:
+//         "Used when ignoring the user is appropriate (conversation ended, user is aggressive, etc.)",
+//     handler: async (runtime, message) => {
+//         return true;
+//     },
+// };
 ```
 
 ### FOLLOW_ROOM

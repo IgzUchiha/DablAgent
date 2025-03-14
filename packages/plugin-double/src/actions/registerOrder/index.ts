@@ -8,6 +8,8 @@ import {
 } from '@elizaos/core';
 import { UberEatsProvider } from '../../providers/UberEatsProvider';
 import examples from './examples';
+import { extractOrderDetails } from '../../utils/orderExtractor';
+import { generateOrderTweet } from '../../utils/tweetGenerator';
 
 interface OrderDetails {
     restaurant: {
@@ -75,35 +77,38 @@ export class RegisterOrderAction implements Action {
         elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Initialized');
     }
 
-    async validate(
-        _runtime: IAgentRuntime,
-        message: { content: { text?: string; action?: string; orderDetails?: OrderDetails } }
-    ): Promise<boolean> {
+    async validate(message: Message): Promise<boolean> {
         elizaLogger.info('[🔄 DOUBLE] RegisterOrderAction - Validating request');
 
-        if (!message.content.text && !message.content.orderDetails) {
-            elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - No order details provided');
+        if (!message.content) {
+            elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - No content in message');
             return false;
         }
 
-        const isExplicitOrder = message.content.action === 'REGISTER_ORDER';
-        const hasOrderKeywords = /place|order|submit|confirm|get|food/i.test(message.content.text || '');
-        const hasOrderDetails = !!message.content.orderDetails;
+        // Check if this is a food order by looking for food-related keywords
+        const text = message.content.text?.toLowerCase() || '';
+        const foodKeywords = ['order', 'food', 'burger', 'pizza', 'tacos', 'fries', 'milkshake', 'restaurant'];
 
-        const isValid = isExplicitOrder || (hasOrderKeywords && hasOrderDetails);
-
-        if (isValid) {
-            elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Validation successful');
-        } else {
-            elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - Validation failed');
+        // If the action is explicitly set to REGISTER_ORDER, accept it
+        if (message.content.action === 'REGISTER_ORDER') {
+            elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Action is REGISTER_ORDER');
+            return true;
         }
 
-        return isValid;
+        // Check if the message contains food-related keywords
+        const hasFoodKeywords = foodKeywords.some(keyword => text.includes(keyword));
+        if (hasFoodKeywords) {
+            elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Message contains food keywords');
+            return true;
+        }
+
+        elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - Not a food order request');
+        return false;
     }
 
     async handler(
         runtime: IAgentRuntime,
-        message: { content: { text: string; orderDetails?: OrderDetails } },
+        message: Message,
         state?: State,
         options?: { [key: string]: unknown },
         callback?: HandlerCallback
@@ -111,58 +116,83 @@ export class RegisterOrderAction implements Action {
         try {
             elizaLogger.info('[🔄 DOUBLE] RegisterOrderAction - Processing order request');
 
-            if (!message.content.orderDetails) {
-                elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - No order details provided');
+            // Extract order details if not provided
+            let orderDetails = message.content.orderDetails;
+            if (!orderDetails) {
+                try {
+                    orderDetails = await extractOrderDetails(message.content.text || '', runtime);
+                    elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Extracted order details:', orderDetails);
+                } catch (extractError) {
+                    elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - Failed to extract order details:', extractError);
+                    return false;
+                }
+            }
+
+            if (!orderDetails) {
+                elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - No order details available');
                 return false;
             }
 
-            const orderDetails = message.content.orderDetails;
+            // Generate a tweet about the order
+            const tweetText = await generateOrderTweet(orderDetails, runtime);
+            elizaLogger.info('[🔄 DOUBLE] RegisterOrderAction - Generated tweet text:', tweetText);
 
-            // Convert order details to UberEats format
-            const order = {
-                restaurantId: await this.provider.searchRestaurants(
-                    orderDetails.restaurant.name,
-                    orderDetails.deliveryAddress || ''
-                ).then(restaurants => restaurants[0]?.id),
-                items: orderDetails.items.map(item => ({
-                    menuItemId: item.name,
-                    quantity: item.quantity,
-                    customizations: item.customizations?.map(c => ({
-                        id: c.item,
-                        selectedOptions: [c.type === 'add' ? 'add' : 'remove']
-                    }))
-                })),
-                deliveryAddress: orderDetails.deliveryAddress,
-                specialInstructions: orderDetails.pickupDetails ?
-                    `Pickup at: ${orderDetails.pickupDetails.location}. Time: ${orderDetails.pickupDetails.preferredTime}` :
-                    undefined
-            };
-
-            const result = await this.provider.placeOrder(order);
-
-            if (callback) {
-                const confirmation: OrderConfirmation = {
-                    orderId: result.orderId,
-                    status: 'CONFIRMED',
-                    estimatedDelivery: result.estimatedDelivery,
-                    paymentStatus: 'COMPLETED',
-                    total: orderDetails.estimatedTotal
-                };
-
-                const responseText = orderDetails.deliveryAddress ?
-                    `Order placed successfully! Your order will be delivered in approximately ${result.estimatedDelivery}.` :
-                    `Order confirmed for pickup! Your order will be ready for pickup soon.`;
-
-                callback({
-                    text: responseText,
-                    content: {
-                        action: 'REGISTER_ORDER',
-                        orderConfirmation: confirmation
-                    }
+            // Process the order with UberEats
+            try {
+                const orderResult = await this.provider.placeOrder({
+                    restaurantId: orderDetails.restaurant.name,
+                    items: orderDetails.items.map(item => ({
+                        menuItemId: item.name,
+                        quantity: item.quantity,
+                        customizations: item.customizations?.map(c => ({
+                            id: c.item,
+                            selectedOptions: [c.type]
+                        }))
+                    })),
+                    deliveryAddress: orderDetails.deliveryAddress || 'Default Address',
+                    specialInstructions: orderDetails.specialInstructions
                 });
-            }
 
-            return true;
+                elizaLogger.info('[✅ DOUBLE] RegisterOrderAction - Order placed successfully:', orderResult);
+
+                if (callback) {
+                    callback({
+                        text: `Your order from ${orderDetails.restaurant.name} has been placed successfully! Your food will be delivered shortly.`,
+                        content: {
+                            action: 'REGISTER_ORDER',
+                            orderConfirmation: {
+                                orderId: orderResult.orderId,
+                                status: 'CONFIRMED',
+                                estimatedDelivery: orderResult.estimatedDelivery,
+                                paymentStatus: 'COMPLETED',
+                                total: orderDetails.estimatedTotal
+                            },
+                            socialPosts: {
+                                twitter: tweetText
+                            }
+                        }
+                    });
+                }
+
+                return true;
+            } catch (orderError) {
+                elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - Failed to place order:', orderError);
+
+                if (callback) {
+                    callback({
+                        text: `I'm sorry, but there was an issue placing your order with ${orderDetails.restaurant.name}. Please try again later or contact the restaurant directly.`,
+                        content: {
+                            action: 'REGISTER_ORDER',
+                            error: {
+                                message: orderError.message,
+                                code: 'ORDER_PLACEMENT_FAILED'
+                            }
+                        }
+                    });
+                }
+
+                return false;
+            }
         } catch (error) {
             elizaLogger.error('[❌ DOUBLE] RegisterOrderAction - Handler error:', error);
             return false;

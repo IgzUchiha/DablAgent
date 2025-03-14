@@ -10,7 +10,7 @@ import { RegisterProvider, Message, ProjectData } from '../../types/Register';
 import { extractProjectData } from '../../utils/extractors';
 import examples from './examples';
 import { PROJECT_STAGES } from '../../constants';
-import { generateFarcasterCast } from '../../utils/generators';
+import { generateFarcasterCast, generateTwitterTweet } from '../../utils/generators';
 
 export class RegisterProjectAction implements Action {
     private provider: RegisterProvider;
